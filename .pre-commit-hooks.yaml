@@ -1,0 +1,6 @@
+-   id: check-successful-msbuild
+    name: Check successful MSBuild
+    description: This hook checks if the last MSBuild was successful.
+    entry: check-successful-msbuild
+    language: python
+    types: [file]
