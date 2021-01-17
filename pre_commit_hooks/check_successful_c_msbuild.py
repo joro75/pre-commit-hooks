@@ -17,14 +17,14 @@ def get_file_modified_time(filename: str) -> datetime.datetime:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument('--filenames', nargs='*', help='Filenames to check.')
+    parser.add_argument('filenames', nargs='*', help='Filenames to check.')
     parser.add_argument(
-        '--buildtype', nargs='*',
+        '--buildtype', action='append',
         help='Build types that should be checked.',
     )
     args = parser.parse_args(argv)
 
-    buildtypes = args.buildtype or ['Release']
+    buildtypes = args.buildtype or ('Release',)
 
     retval = 0
     for filename in args.filenames:

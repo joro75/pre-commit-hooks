@@ -12,46 +12,54 @@ class TestSuccessfulCMSBuild_case1(unittest.TestCase):
     reflects an unsuccessful build for the 'Release' buildtype"""
 
     def test_main_unsuccessfulbuild(self):
-        self.assertEqual(1, main(('--filenames', 'tests\\case1\\file1.c')))
+        self.assertEqual(1, main(argv=['tests\\case1\\file1.c']))
 
     def test_main_unsuccessfulbuild_multiple_files(self):
         self.assertEqual(
-            4, main((
-                '--filenames', 'tests\\case1\\file1.c',
-                'tests\\case1\\file2.c', 'tests\\case1\\file3.c',
-                'tests\\case1\\file4.c',
-            )),
+            4, main(
+                argv=[
+                    'tests\\case1\\file1.c',
+                    'tests\\case1\\file2.c', 'tests\\case1\\file3.c',
+                    'tests\\case1\\file4.c',
+                ],
+            ),
         )
 
     def test_main_non_existing_file(self):
         self.assertEqual(
-            0, main(('--filenames', 'tests\\case1\\file_not_existing.c')),
+            0, main(argv=['tests\\case1\\file_not_existing.c']),
         )
 
     def test_main_non_existing_buildtype(self):
         self.assertEqual(
-            0, main((
-                '--filenames', 'tests\\case1\\file1.c',
-                '--buildtype', 'Debug',
-            )),
+            0, main(
+                argv=[
+                    'tests\\case1\\file1.c',
+                    '--buildtype', 'Debug',
+                ],
+            ),
         )
 
     def test_main_multiple_buildtypes(self):
         self.assertEqual(
             1, main(
-                (
-                    '--filenames', 'tests\\case1\\file1.c',
-                    '--buildtype', 'Debug', 'Release',
-                ),
+                argv=[
+                    'tests\\case1\\file1.c',
+                    '--buildtype', 'Debug',
+                    '--buildtype', 'Release',
+                ],
             ),
         )
 
     def test_main_multiple_specified_buildtypes(self):
         self.assertEqual(
-            1, main((
-                '--filenames', 'tests\\case1\\file1.c',
-                '--buildtype', 'Debug', '--buildtype', 'Release',
-            )),
+            1, main(
+                argv=[
+                    'tests\\case1\\file1.c',
+                    '--buildtype', 'Debug',
+                    '--buildtype', 'Release',
+                ],
+            ),
         )
 
 
@@ -63,10 +71,13 @@ class TestSuccessfulCMSBuild_case2(unittest.TestCase):
 
     def test_main_unsuccessfulbuild(self):
         self.assertEqual(
-            0, main((
-                '--filenames', 'tests\\case2\\file2.c',
-                '--buildtype', 'Debug', '--buildtype', 'Release',
-            )),
+            0, main(
+                argv=[
+                    'tests\\case2\\file2.c',
+                    '--buildtype', 'Debug',
+                    '--buildtype', 'Release',
+                ],
+            ),
         )
 
 
@@ -100,26 +111,33 @@ class TestSuccessfulCMSBuild_case3(unittest.TestCase):
 
     def test_main_file_is_newer(self):
         self.assertEqual(
-            1, main((
-                '--filenames', 'tests\\case3\\file3.c',
-                '--buildtype', 'Debug',
-            )),
+            1, main(
+                argv=[
+                    'tests\\case3\\file3.c',
+                    '--buildtype', 'Debug',
+                ],
+            ),
         )
 
     def test_main_build_is_newer(self):
         self.assertEqual(
-            0, main((
-                '--filenames', 'tests\\case3\\file3.c',
-                '--buildtype', 'Release',
-            )),
+            0, main(
+                argv=[
+                    'tests\\case3\\file3.c',
+                    '--buildtype', 'Release',
+                ],
+            ),
         )
 
     def test_main_multiple_build_types(self):
         self.assertEqual(
-            1, main((
-                '--filenames', 'tests\\case3\\file3.c',
-                '--buildtype', 'Release', '--buildtype', 'Debug',
-            )),
+            1, main(
+                argv=[
+                    'tests\\case3\\file3.c',
+                    '--buildtype', 'Release',
+                    '--buildtype', 'Debug',
+                ],
+            ),
         )
 
 
