@@ -23,7 +23,7 @@
     <Compile Include="pre_commit_hooks\check_successful_c_msbuild.py" />
     <Compile Include="pre_commit_hooks\__init__.py" />
     <Compile Include="setup.py" />
-    <Compile Include="tests\check_successful_c_msbuild_test.py" />
+    <Compile Include="tests\test_check_successful_c_msbuild.py" />
     <Compile Include="tests\__init__.py" />
   </ItemGroup>
   <ItemGroup>
