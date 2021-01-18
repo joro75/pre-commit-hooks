@@ -63,7 +63,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                             project = m.group(1)
                             print(
                                 f'Build for {build} in {project} is '
-                                'older then the file.',
+                                'older than the file.',
                             )
                         retval += 1
 
