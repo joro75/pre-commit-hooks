@@ -8,6 +8,45 @@ from typing import Optional
 from typing import Sequence
 
 
+class DetectedProblem:
+    """Class that contains a single instance of a detected problem"""
+
+    def __init__(
+        self, buildtype: str, project: str,
+        build: bool = True, outdated: bool = False,
+    ):
+        self.buildtype = buildtype
+        self.project = project
+        self.build = build
+        self.outdated = outdated
+
+    def __hash__(self) -> int:
+        return hash((self.buildtype, self.project, self.build, self.outdated))
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return (
+            self.buildtype == other.buildtype and
+            self.project == other.project and
+            self.build == other.build and
+            self.outdated == other.outdated
+        )
+
+    def report(self) -> None:
+        """Reports the problem that is detected"""
+        if not self.build:
+            print(
+                f'Unsuccessful build for {self.buildtype} '
+                f'in {self.project}.',
+            )
+        if self.outdated:
+            print(
+                f'Build for {self.buildtype} in {self.project} '
+                f'is older than the file.',
+            )
+
+
 def get_file_modified_time(filename: str) -> datetime.datetime:
     """Determine the file modified time of the passed file."""
     filestat = os.stat(filename)
@@ -26,7 +65,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     buildtypes = args.buildtype or ('Release',)
 
-    retval = 0
+    problems = set()
+
     for filename in args.filenames:
         fullpath = os.path.join(os.curdir, filename)
         if os.path.exists(fullpath):
@@ -43,10 +83,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     )
                     if m:
                         project = m.group(1)
-                        print(
-                            f'Unsuccessful build for {build} in {project}.',
+                        problems.add(
+                            DetectedProblem(
+                                build, project, build=False,
+                            ),
                         )
-                    retval += 1
 
                 latest_search = os.path.join(
                     dir, '**', build, '*.tlog', '*.lastbuildstate',
@@ -61,11 +102,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                         )
                         if m:
                             project = m.group(1)
-                            print(
-                                f'Build for {build} in {project} is '
-                                'older than the file.',
+                            problems.add(
+                                DetectedProblem(
+                                    build, project, outdated=True,
+                                ),
                             )
-                        retval += 1
+
+    retval = 0
+    for problem in problems:
+        problem.report()
+        retval += 1
 
     return retval
 
