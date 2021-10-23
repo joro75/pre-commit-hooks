@@ -142,5 +142,50 @@ class TestSuccessfulCMSBuild_case3(unittest.TestCase):
         )
 
 
+class TestSuccessfulCMSBuild_case4(unittest.TestCase):
+    r"""Testcase for testing the successful C MSBuild, where this
+    testcase uses the file in the tests\case4\ subdirectory which
+    reflects an unsuccessful build for two different project
+    directories with the 'Release' buildtype."""
+
+    @staticmethod
+    def _touch_file(filename: str) -> None:
+        file = pathlib.Path(filename)
+        file.touch(exist_ok=True)
+
+    @classmethod
+    def setUpClass(cls):
+        cls._touch_file('tests\\case4\\file1.c')
+        cls._touch_file('tests\\case4\\intermediate1\\im1_file1.c')
+        time.sleep(1.2)
+        cls._touch_file(
+            'tests\\case4\\intermediate1\\Release\\project4a.tlog\\'
+            'project4a.lastbuildstate',
+        )
+        time.sleep(1.2)
+        cls._touch_file('tests\\case4\\file2.c')
+        cls._touch_file('tests\\case4\\intermediate2\\im2_file1.c')
+        time.sleep(1.2)
+        cls._touch_file(
+            'tests\\case4\\intermediate2\\Release\\project4b.tlog\\'
+            'project4b.lastbuildstate',
+        )
+
+    def test_main_unsuccessfulbuild(self):
+        self.assertEqual(2, main(argv=['tests\\case4\\file1.c']))
+
+    def test_main_unsuccessfulbuild_multiple_files(self):
+        self.assertEqual(
+            3, main(
+                argv=[
+                    'tests\\case4\\file1.c',
+                    'tests\\case4\\intermediate1\\im1_file1.c',
+                    'tests\\case4\\file2.c',
+                    'tests\\case4\\intermediate2\\im2_file1.c',
+                ],
+            ),
+        )
+
+
 if __name__ == '__main__':    # pragma: no cover
     unittest.main()
