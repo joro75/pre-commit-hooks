@@ -16,10 +16,11 @@ class TestSuccessfulCMSBuild_case1(unittest.TestCase):
 
     def test_main_unsuccessfulbuild_multiple_files(self):
         self.assertEqual(
-            4, main(
+            1, main(
                 argv=[
                     'tests\\case1\\file1.c',
-                    'tests\\case1\\file2.c', 'tests\\case1\\file3.c',
+                    'tests\\case1\\file2.c',
+                    'tests\\case1\\file3.c',
                     'tests\\case1\\file4.c',
                 ],
             ),
