@@ -4,6 +4,7 @@ import datetime
 import glob
 import os.path
 import re
+from pathlib import Path
 from typing import Optional
 from typing import Sequence
 
@@ -54,6 +55,25 @@ def get_file_modified_time(filename: str) -> datetime.datetime:
     return mtime
 
 
+def is_included_in_project(filename: str) -> bool:
+    """Check if the passed file (relative to the current directory) is
+    part of a project file in the same or higher directory."""
+    included = False
+    curdir = Path(os.curdir)
+    fullfile = curdir.joinpath(filename)
+    searchdir = fullfile.parent
+    searchedroot = False
+    while (not searchedroot) and (not included):
+        if len(list(searchdir.glob('*.vcxproj'))):
+            included = True
+
+        if searchdir == curdir:
+            searchedroot = True
+        else:
+            searchdir = searchdir.parent
+    return included
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('filenames', nargs='*', help='Filenames to check.')
@@ -69,7 +89,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     for filename in args.filenames:
         fullpath = os.path.join(os.curdir, filename)
-        if os.path.exists(fullpath):
+        if os.path.exists(fullpath) and is_included_in_project(filename):
             file_date = get_file_modified_time(fullpath)
             for build in buildtypes:
                 dir = os.path.dirname(fullpath)

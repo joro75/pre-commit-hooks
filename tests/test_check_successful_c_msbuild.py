@@ -230,5 +230,65 @@ class TestSuccessfulCMSBuild_case4(PathTestCase):
         )
 
 
+class TestSuccessfulCMSBuild_case5(PathTestCase):
+    r"""Testcase for testing the successful C MSBuild, where this
+    testcase uses the file in the tests\case5\ subdirectory which
+    reflects an successful build for the 'Release'.
+    However the project file is only present in the intermediate
+    directory and thus the top level file is assumed not to be
+    present in the project and thus unrelevant.
+    """
+
+    _testCasePath = Path('tests/case5')
+
+    def test_main_file_is_not_present_in_project(self):
+        self.assertEqual(
+            0, main(
+                argv=[
+                    str(self._testCasePath.joinpath('file5.c')),
+                ],
+            ),
+        )
+
+    def test_main_yaml_file_not_present_in_project(self):
+        self.assertEqual(
+            0, main(
+                argv=[
+                    str(self._testCasePath.joinpath('.some-config.yaml')),
+                ],
+            ),
+        )
+
+    def test_main_file_is_present_in_project(self):
+        self.assertEqual(
+            1, main(
+                argv=[
+                    str(
+                        self._testCasePath.joinpath(
+                            'intermediate',
+                            'im_file5.c',
+                        ),
+                    ),
+                ],
+            ),
+        )
+
+    def test_main_multiple_files(self):
+        self.assertEqual(
+            1, main(
+                argv=[
+                    str(self._testCasePath.joinpath('file5.c')),
+                    str(self._testCasePath.joinpath('.some-config.yaml')),
+                    str(
+                        self._testCasePath.joinpath(
+                            'intermediate',
+                            'im_file5.c',
+                        ),
+                    ),
+                ],
+            ),
+        )
+
+
 if __name__ == '__main__':    # pragma: no cover
     unittest.main()
