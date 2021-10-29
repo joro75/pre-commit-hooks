@@ -71,12 +71,9 @@ def file_in_project(filename: Path, project_file: Path) -> bool:
             './{http://schemas.microsoft.com/developer/msbuild/2003}'
             'ItemGroup/*[@Include]',
         )
-        print(items)
         for item in items:
-            print(item)
             include_file = item.attrib['Include']
             if include_file:
-                print(include_file)
                 if project_file.parent.joinpath(include_file) == filename:
                     included |= True
 
