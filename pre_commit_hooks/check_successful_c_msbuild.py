@@ -4,6 +4,7 @@ import datetime
 import glob
 import os.path
 import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Optional
 from typing import Sequence
@@ -55,6 +56,33 @@ def get_file_modified_time(filename: str) -> datetime.datetime:
     return mtime
 
 
+def file_in_project(filename: Path, project_file: Path) -> bool:
+    """Check if the passed file is included in the passed
+    project_file."""
+    included = False
+
+    # Load the file
+    tree = ET.parse(str(project_file))
+    root = tree.getroot()
+    if root:
+        namespace = 'http://schemas.microsoft.com/developer/msbuild/2003'
+
+        # Use the XPath expression to find all nodes
+        # with an 'Include' attribute
+        items = root.findall(
+            f'./{{{namespace}}}ItemGroup/'
+            '*[@Include]',
+        )
+        for item in items:
+            include_file = item.attrib['Include']
+            if include_file:
+                if project_file.parent.joinpath(include_file) == filename:
+                    included = True
+                    break
+
+    return included
+
+
 def is_included_in_project(filename: str) -> bool:
     """Check if the passed file (relative to the current directory) is
     part of a project file in the same or higher directory."""
@@ -64,8 +92,8 @@ def is_included_in_project(filename: str) -> bool:
     searchdir = fullfile.parent
     searchedroot = False
     while (not searchedroot) and (not included):
-        if len(list(searchdir.glob('*.vcxproj'))):
-            included = True
+        for project_file in searchdir.glob('*.vcxproj'):
+            included = file_in_project(fullfile, project_file)
 
         if searchdir == curdir:
             searchedroot = True
