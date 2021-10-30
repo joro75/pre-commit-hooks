@@ -1,9 +1,6 @@
 """Pre-commit hook to check if the last C MSBuild was successfull."""
 import argparse
 import datetime
-import glob
-import os.path
-import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Optional
@@ -49,11 +46,9 @@ class DetectedProblem:
             )
 
 
-def get_file_modified_time(filename: str) -> datetime.datetime:
+def get_file_modified_time(filename: Path) -> datetime.datetime:
     """Determine the file modified time of the passed file."""
-    filestat = os.stat(filename)
-    mtime = datetime.datetime.fromtimestamp(filestat.st_mtime)
-    return mtime
+    return datetime.datetime.fromtimestamp(filename.stat().st_mtime)
 
 
 def file_in_project(filename: Path, project_file: Path) -> bool:
@@ -83,17 +78,16 @@ def file_in_project(filename: Path, project_file: Path) -> bool:
     return included
 
 
-def is_included_in_project(filename: str) -> bool:
+def is_included_in_project(filename: Path) -> bool:
     """Check if the passed file (relative to the current directory) is
     part of a project file in the same or higher directory."""
     included = False
-    curdir = Path(os.curdir)
-    fullfile = curdir.joinpath(filename)
-    searchdir = fullfile.parent
+    curdir = Path()
+    searchdir = filename.parent
     searchedroot = False
     while (not searchedroot) and (not included):
         for project_file in searchdir.glob('*.vcxproj'):
-            included = file_in_project(fullfile, project_file)
+            included = file_in_project(filename, project_file)
 
         if searchdir == curdir:
             searchedroot = True
@@ -115,46 +109,36 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     problems = set()
 
+    curdir = Path()
     for filename in args.filenames:
-        fullpath = os.path.join(os.curdir, filename)
-        if os.path.exists(fullpath) and is_included_in_project(filename):
+        fullpath = curdir.joinpath(filename)
+        if fullpath.exists() and is_included_in_project(fullpath):
             file_date = get_file_modified_time(fullpath)
             for build in buildtypes:
-                dir = os.path.dirname(fullpath)
-                failed_search = os.path.join(
-                    dir, '**', build, '*.tlog', 'unsuccessfulbuild',
-                )
-                failed_files = glob.glob(failed_search, recursive=True)
+                dir = fullpath.parent
+                failed_files = dir.glob(f'**/{build}/*.tlog/unsuccessfulbuild')
                 for buildfile in failed_files:
-                    m = re.match(
-                        r'.*\\(.*)\.tlog\\unsuccessfulbuild', buildfile, re.I,
+                    # The project name is the stem (without the .tlog)
+                    # of the parent directory
+                    project = buildfile.parent.stem
+                    problems.add(
+                        DetectedProblem(
+                            build, project, build=False,
+                        ),
                     )
-                    if m:
-                        project = m.group(1)
-                        problems.add(
-                            DetectedProblem(
-                                build, project, build=False,
-                            ),
-                        )
 
-                latest_search = os.path.join(
-                    dir, '**', build, '*.tlog', '*.lastbuildstate',
-                )
-                latest_files = glob.glob(latest_search, recursive=True)
+                latest_files = dir.glob(f'**/{build}/*.tlog/*.lastbuildstate')
                 for latest_file in latest_files:
                     build_date = get_file_modified_time(latest_file)
                     if build_date <= file_date:
-                        m = re.match(
-                            r'.*\\(.*)\.tlog\\.*\.lastbuildstate',
-                            latest_file, re.I,
+                        # The project name is the stem (without the .tlog)
+                        # of the parent directory
+                        project = latest_file.parent.stem
+                        problems.add(
+                            DetectedProblem(
+                                build, project, outdated=True,
+                            ),
                         )
-                        if m:
-                            project = m.group(1)
-                            problems.add(
-                                DetectedProblem(
-                                    build, project, outdated=True,
-                                ),
-                            )
 
     retval = 0
     for problem in problems:
