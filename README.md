@@ -12,7 +12,7 @@ Add this to your `.pre-commit-config.yaml`
 
 ```yaml
 -   repo: https://github.com/joro75/pre-commit-hooks
-    rev: v0.4.0  # Use the ref you want to point at
+    rev: v0.4.0
     hooks:
     -   id: check-successful-c-msbuild
 ```
@@ -20,4 +20,4 @@ Add this to your `.pre-commit-config.yaml`
 ### Hooks available
 
 #### `check-successfull-c-msbuild`
-Check that the MSBuild of a C/C++ project was successful.
+Check that the MSBuild of a C/C++ project was successful before the commit is performed.
