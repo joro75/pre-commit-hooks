@@ -65,17 +65,20 @@ def file_in_project(filename: Path, project_file: Path) -> bool:
     tree = ET.parse(str(project_file))
     root = tree.getroot()
     if root:
+        namespace = 'http://schemas.microsoft.com/developer/msbuild/2003'
+
         # Use the XPath expression to find all nodes
         # with an 'Include' attribute
         items = root.findall(
-            './{http://schemas.microsoft.com/developer/msbuild/2003}'
-            'ItemGroup/*[@Include]',
+            f'./{{{namespace}}}ItemGroup/'
+            '*[@Include]',
         )
         for item in items:
             include_file = item.attrib['Include']
             if include_file:
                 if project_file.parent.joinpath(include_file) == filename:
-                    included |= True
+                    included = True
+                    break
 
     return included
 
