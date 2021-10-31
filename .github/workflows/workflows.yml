@@ -21,7 +21,7 @@ jobs:
         coverage run -m unittest
         coverage xml
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v2
       with:
         env_vars: OS,PYTHON
         fail_ci_if_error: true
