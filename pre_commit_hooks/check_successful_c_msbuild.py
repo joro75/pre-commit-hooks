@@ -7,6 +7,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Sequence
+from typing import Set
 from typing import Tuple
 
 
@@ -79,31 +80,6 @@ def get_included_files_from_project(project_file: Path) -> List[Path]:
     return files
 
 
-def file_in_project(filename: Path, project_file: Path) -> bool:
-    """Check if the passed file is included in the passed
-    project_file."""
-    included_files = get_included_files_from_project(project_file)
-    return filename in included_files
-
-
-def is_included_in_project(filename: Path) -> bool:
-    """Check if the passed file (relative to the current directory) is
-    part of a project file in the same or higher directory."""
-    included = False
-    curdir = Path()
-    searchdir = filename.parent
-    searchedroot = False
-    while (not searchedroot) and (not included):
-        for project_file in searchdir.glob('*.vcxproj'):
-            included = file_in_project(filename, project_file)
-
-        if searchdir == curdir:
-            searchedroot = True
-        else:
-            searchdir = searchdir.parent
-    return included
-
-
 def build_directory_check_list(files: List[Path]) -> Dict[
         Path, List[Tuple[Path, datetime.datetime]],
 ]:
@@ -154,42 +130,57 @@ def build_project_check_list(
     return projects
 
 
+def check_if_projects_build(
+    projects: Dict[Path, datetime.datetime],
+    buildtypes: List[str],
+) -> Set[DetectedProblem]:
+    """Checks for the passed list of projects and build types if
+    the output is build."""
+
+    problems: Set[DetectedProblem] = set()
+    for project_file in projects:
+        file_change_date = projects[project_file]
+        for build in buildtypes:
+            dir = project_file.parent
+            failed_files = dir.glob(f'**/{build}/*.tlog/unsuccessfulbuild')
+            for buildfile in failed_files:
+                # The project name is the stem (without the .tlog)
+                # of the parent directory
+                project = buildfile.parent.stem
+                problems.add(
+                    DetectedProblem(
+                        build, project, build=False,
+                    ),
+                )
+
+            # found_build = False
+            latest_files = dir.glob(f'**/{build}/*.tlog/*.lastbuildstate')
+            for latest_file in latest_files:
+                # found_build = True
+                build_date = get_file_modified_time(latest_file)
+                if build_date <= file_change_date:
+                    # The project name is the stem (without the .tlog)
+                    # of the parent directory
+                    project = latest_file.parent.stem
+                    problems.add(
+                        DetectedProblem(
+                            build, project, outdated=True,
+                        ),
+                    )
+            # if not found_build:
+            #    problems.add(DetectedProblem(
+            #                    build, project_file.stem, build=False
+            #                 ),
+            #    )
+    return problems
+
+
 def check_builds_for_files(files: List[Path], buildtypes: List[str]) -> int:
     """Check if for the passed files the passed buildtypes are
     successfully build."""
     dirs = build_directory_check_list(files)
     projects = build_project_check_list(dirs)
-    print(projects)
-
-    problems = set()
-    for filename in files:
-        if filename.exists() and is_included_in_project(filename):
-            file_date = get_file_modified_time(filename)
-            for build in buildtypes:
-                dir = filename.parent
-                failed_files = dir.glob(f'**/{build}/*.tlog/unsuccessfulbuild')
-                for buildfile in failed_files:
-                    # The project name is the stem (without the .tlog)
-                    # of the parent directory
-                    project = buildfile.parent.stem
-                    problems.add(
-                        DetectedProblem(
-                            build, project, build=False,
-                        ),
-                    )
-
-                latest_files = dir.glob(f'**/{build}/*.tlog/*.lastbuildstate')
-                for latest_file in latest_files:
-                    build_date = get_file_modified_time(latest_file)
-                    if build_date <= file_date:
-                        # The project name is the stem (without the .tlog)
-                        # of the parent directory
-                        project = latest_file.parent.stem
-                        problems.add(
-                            DetectedProblem(
-                                build, project, outdated=True,
-                            ),
-                        )
+    problems = check_if_projects_build(projects, buildtypes)
 
     retval = 0
     for problem in problems:
