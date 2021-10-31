@@ -3,9 +3,11 @@ import argparse
 import datetime
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Sequence
+from typing import Tuple
 
 
 class DetectedProblem:
@@ -97,9 +99,30 @@ def is_included_in_project(filename: Path) -> bool:
     return included
 
 
+def build_directory_check_list(files: List[Path]) -> Dict[
+        Path, List[Tuple[Path, datetime.datetime]],
+]:
+    """Builds the list of directories that should be checked based on
+    the passed list of files."""
+    dirs: Dict[Path, List[Tuple[Path, datetime.datetime]]] = {}
+    for file in files:
+        if file.exists():
+            file_date = get_file_modified_time(file)
+            for checkdir in file.parents:
+                # Retrieve the directory from the dictionary
+                # Which is a list of file/change-date pairs
+                dir_data = dirs.get(checkdir, [])
+                dir_data.append((file, file_date))
+                dirs[checkdir] = dir_data
+    return dirs
+
+
 def check_builds_for_files(files: List[Path], buildtypes: List[str]) -> int:
     """Check if for the passed files the passed buildtypes are
     successfully build."""
+    dirs = build_directory_check_list(files)
+    print(dirs)
+
     problems = set()
     for filename in files:
         if filename.exists() and is_included_in_project(filename):
