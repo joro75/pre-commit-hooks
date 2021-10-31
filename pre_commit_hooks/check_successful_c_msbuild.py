@@ -3,6 +3,7 @@ import argparse
 import datetime
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import List
 from typing import Optional
 from typing import Sequence
 
@@ -96,26 +97,15 @@ def is_included_in_project(filename: Path) -> bool:
     return included
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument('filenames', nargs='*', help='Filenames to check.')
-    parser.add_argument(
-        '--buildtype', action='append',
-        help='Build types that should be checked.',
-    )
-    args = parser.parse_args(argv)
-
-    buildtypes = args.buildtype or ('Release',)
-
+def check_builds_for_files(files: List[Path], buildtypes: List[str]) -> int:
+    """Check if for the passed files the passed buildtypes are
+    successfully build."""
     problems = set()
-
-    curdir = Path()
-    for filename in args.filenames:
-        fullpath = curdir.joinpath(filename)
-        if fullpath.exists() and is_included_in_project(fullpath):
-            file_date = get_file_modified_time(fullpath)
+    for filename in files:
+        if filename.exists() and is_included_in_project(filename):
+            file_date = get_file_modified_time(filename)
             for build in buildtypes:
-                dir = fullpath.parent
+                dir = filename.parent
                 failed_files = dir.glob(f'**/{build}/*.tlog/unsuccessfulbuild')
                 for buildfile in failed_files:
                     # The project name is the stem (without the .tlog)
@@ -146,6 +136,28 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         retval += 1
 
     return retval
+
+
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filenames', nargs='*', help='Filenames to check.')
+    parser.add_argument(
+        '--buildtype', action='append',
+        help='Build types that should be checked.',
+    )
+    args = parser.parse_args(argv)
+
+    buildtypes = list(args.buildtype or ('Release',))
+    files = []
+    curdir = Path()
+    for filename in args.filenames:
+        files.append(curdir.joinpath(filename))
+
+    problem_count = check_builds_for_files(
+        files,
+        buildtypes,
+    )
+    return problem_count
 
 
 if __name__ == '__main__':    # pragma: no cover
