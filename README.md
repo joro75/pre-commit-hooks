@@ -1,3 +1,6 @@
+[![PyPI pyversions](https://img.shields.io/badge/python-3.7-blue.svg)]()
+[![codecov](https://codecov.io/gh/joro75/pre-commit-hooks/branch/main/graph/badge.svg?token=TUIBLCE5CW)](https://codecov.io/gh/joro75/pre-commit-hooks)
+[![GitHub Release](https://img.shields.io/github/release/joro75/pre-commit-hooks.svg)](https://github.com/joro75/pre-commit-hooks/releases)
 
 pre-commit-hooks
 ================
