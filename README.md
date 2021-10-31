@@ -6,7 +6,7 @@
 pre-commit-hooks
 ================
 
-A [pre-commit](https://pre-commit.com/) hook to verify if a Microsoft MSBuild of a C/C++ project was successfully build, before the code changes are actually committed.
+A [pre-commit](https://pre-commit.com/) hook to check if the Microsoft C/C++ project has been successfully built, before the code changes are actually committed.
 
 See also: https://github.com/pre-commit/pre-commit
 
@@ -24,7 +24,7 @@ Add this to your `.pre-commit-config.yaml`
 ### Hooks available
 
 #### `check-successful-c-msbuild`
-Check that the Microsoft C/C++ project file project was successfully build, before the code changes are actually committed.
+Check that the Microsoft C/C++ project has been successfully built, before the code changes are actually committed.
 
 * `--buildtype` - specifies the build type (or 'Solution Configuration' as it is called by Microsoft) that should be checked. Can be specified multiple times, and defaults to 'Release' if not specified at all.
 

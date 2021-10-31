@@ -111,7 +111,7 @@ def build_project_check_list(
         Path, datetime.datetime,
 ]:
     """Builds the list of the MS VS project files that should be checked
-    based ont he passed list of files."""
+    based on the passed list of files."""
     projects: Dict[Path, datetime.datetime] = {}
     for dir in dirs:
         if dirs[dir]:
