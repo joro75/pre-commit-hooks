@@ -24,7 +24,7 @@ class DetectedProblem:
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, type(self)):
-            return NotImplemented   # pragma: no cover
+            return NotImplemented
         return (
             self.buildtype == other.buildtype and
             self.project == other.project and

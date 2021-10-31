@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 from typing import Union
 
+from pre_commit_hooks.check_successful_c_msbuild import DetectedProblem
 from pre_commit_hooks.check_successful_c_msbuild import main
 
 
@@ -288,6 +289,51 @@ class TestSuccessfulCMSBuild_case5(PathTestCase):
                 ],
             ),
         )
+
+
+class TestDetectedProblem(unittest.TestCase):
+    """Tests the DetectedProblem class"""
+
+    def test_eq_to_other_type(self):
+        compare = DetectedProblem('a', 'b', True) == 'other_data'
+        self.assertEqual(False, compare)
+
+    def test_eq_same(self):
+        dp1 = DetectedProblem('a', 'b', outdated=False, build=True)
+        dp2 = DetectedProblem('a', 'b', True, False)
+
+        self.assertEqual(True, dp1 == dp2)
+
+    def test_eq_different(self):
+        dp = DetectedProblem('a', 'b', build=True, outdated=False)
+        dp_diff1 = DetectedProblem('A', 'b', True, False)
+        dp_diff2 = DetectedProblem('a', 'B', True, False)
+        dp_diff3 = DetectedProblem('a', 'b', False, False)
+        dp_diff4 = DetectedProblem('a', 'b', True, True)
+
+        self.assertEqual(
+            False, dp == dp_diff1,
+            'Buildtype is not correctly compared.',
+        )
+        self.assertEqual(
+            False, dp == dp_diff2,
+            'Project is not correctly compared.',
+        )
+        self.assertEqual(
+            False, dp == dp_diff3,
+            'Build is not correctly compared.',
+        )
+        self.assertEqual(
+            False, dp == dp_diff4,
+            'Outdated is not correctly compared.',
+        )
+
+    def test_in_set(self):
+        data = set()
+        data.add(DetectedProblem('a', 'b', True))
+        data.add(DetectedProblem('c', 'd', True))
+
+        self.assertEqual(2, len(data))
 
 
 if __name__ == '__main__':    # pragma: no cover
