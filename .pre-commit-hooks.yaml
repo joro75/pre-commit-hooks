@@ -1,6 +1,6 @@
 -   id: check-successful-c-msbuild
-    name: Check successful C/C++ MSBuild
-    description: This hook checks if the last C/C++ MSBuild was successful.
+    name: Check successful Microsoft C/C++ build
+    description: This hook checks if the last Microsoft C/C++ project was build successfully.
     entry: check-successful-c-msbuild
     language: python
     types: [file]

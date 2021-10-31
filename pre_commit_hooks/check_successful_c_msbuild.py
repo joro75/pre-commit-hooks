@@ -153,10 +153,8 @@ def check_if_projects_build(
                     ),
                 )
 
-            # found_build = False
             latest_files = dir.glob(f'**/{build}/*.tlog/*.lastbuildstate')
             for latest_file in latest_files:
-                # found_build = True
                 build_date = get_file_modified_time(latest_file)
                 if build_date <= file_change_date:
                     # The project name is the stem (without the .tlog)
@@ -167,11 +165,6 @@ def check_if_projects_build(
                             build, project, outdated=True,
                         ),
                     )
-            # if not found_build:
-            #    problems.add(DetectedProblem(
-            #                    build, project_file.stem, build=False
-            #                 ),
-            #    )
     return problems
 
 
