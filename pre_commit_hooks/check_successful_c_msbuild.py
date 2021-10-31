@@ -54,10 +54,11 @@ def get_file_modified_time(filename: Path) -> datetime.datetime:
     return datetime.datetime.fromtimestamp(filename.stat().st_mtime)
 
 
-def file_in_project(filename: Path, project_file: Path) -> bool:
-    """Check if the passed file is included in the passed
-    project_file."""
-    included = False
+def get_included_files_from_project(project_file: Path) -> List[Path]:
+    """Gets a list of all the files that are included by the passed
+    projectfile."""
+
+    files = []
 
     # Load the file
     tree = ET.parse(str(project_file))
@@ -74,11 +75,15 @@ def file_in_project(filename: Path, project_file: Path) -> bool:
         for item in items:
             include_file = item.attrib['Include']
             if include_file:
-                if project_file.parent.joinpath(include_file) == filename:
-                    included = True
-                    break
+                files.append(project_file.parent.joinpath(include_file))
+    return files
 
-    return included
+
+def file_in_project(filename: Path, project_file: Path) -> bool:
+    """Check if the passed file is included in the passed
+    project_file."""
+    included_files = get_included_files_from_project(project_file)
+    return filename in included_files
 
 
 def is_included_in_project(filename: Path) -> bool:
@@ -117,11 +122,44 @@ def build_directory_check_list(files: List[Path]) -> Dict[
     return dirs
 
 
+def build_project_check_list(
+    dirs: Dict[
+        Path, List[
+            Tuple[
+                Path,
+                datetime.datetime,
+            ]
+        ],
+    ],
+) -> Dict[
+        Path, datetime.datetime,
+]:
+    """Builds the list of the MS VS project files that should be checked
+    based ont he passed list of files."""
+    projects: Dict[Path, datetime.datetime] = {}
+    for dir in dirs:
+        if dirs[dir]:
+            for project_file in dir.glob('*.vcxproj'):
+                included_files = get_included_files_from_project(project_file)
+                if included_files:
+                    for filename, change_date in dirs[dir]:
+                        if filename in included_files:
+                            date_check = projects.get(
+                                project_file,
+                                datetime.datetime
+                                (1900, 1, 1),
+                            )
+                            if change_date > date_check:
+                                projects[project_file] = change_date
+    return projects
+
+
 def check_builds_for_files(files: List[Path], buildtypes: List[str]) -> int:
     """Check if for the passed files the passed buildtypes are
     successfully build."""
     dirs = build_directory_check_list(files)
-    print(dirs)
+    projects = build_project_check_list(dirs)
+    print(projects)
 
     problems = set()
     for filename in files:
