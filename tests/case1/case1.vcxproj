@@ -9,6 +9,6 @@
     <ClCompile Include="file4.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="README.md" />
+    <None Include="README.md" />
   </ItemGroup>
 </Project>
