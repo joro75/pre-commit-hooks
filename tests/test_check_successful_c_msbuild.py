@@ -49,6 +49,13 @@ class TestSuccessfulCMSBuild_case1(PathTestCase):
             ),
         )
 
+    def test_main_non_related_file(self):
+        self.assertEqual(
+            0, main(
+                argv=[str(self._testCasePath.joinpath('README.md'))],
+            ),
+        )
+
     def test_main_non_existing_buildtype(self):
         self.assertEqual(
             0, main(
