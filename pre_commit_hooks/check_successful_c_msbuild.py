@@ -66,17 +66,19 @@ def get_included_files_from_project(project_file: Path) -> List[Path]:
     root = tree.getroot()
     if root:
         namespace = 'http://schemas.microsoft.com/developer/msbuild/2003'
+        ns = {'msbuild': namespace}
 
         # Use the XPath expression to find all nodes
         # with an 'Include' attribute
         items = root.findall(
-            f'./{{{namespace}}}ItemGroup/'
-            '*[@Include]',
+            './msbuild:ItemGroup/'
+            '*[@Include]', ns,
         )
         for item in items:
-            include_file = item.attrib['Include']
-            if include_file:
-                files.append(project_file.parent.joinpath(include_file))
+            if item.tag != f'{{{namespace}}}None':
+                include_file = item.attrib['Include']
+                if include_file:
+                    files.append(project_file.parent.joinpath(include_file))
     return files
 
 
