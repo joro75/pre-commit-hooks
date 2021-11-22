@@ -16,7 +16,7 @@ Add this to your `.pre-commit-config.yaml`
 
 ```yaml
 -   repo: https://github.com/joro75/pre-commit-hooks
-    rev: v0.5.0
+    rev: v0.5.1
     hooks:
     -   id: check-successful-c-msbuild
 ```
